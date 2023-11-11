@@ -1,0 +1,46 @@
+version: "3"
+services:
+  springapp:
+    image: dockerhandson/spring-boot-mongo:latest
+    restart: always
+    ports: 
+    - 8080:8080
+    environment:
+    - MONGO_DB_HOSTNAME=mongodb
+    - MONGO_DB_USERNAME=admin
+    - MONGO_DB_PASSWORD=123@test
+    networks:
+    - spring_net
+    depends_on:
+      - mongodb
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - node.labels.server_name==node1
+      update_config:
+        parallelism: 1
+        delay: 20s
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+  mongodb:
+    image: mongo
+    environment:
+    - MONGO_INITDB_ROOT_USERNAME=admin
+    - MONGO_INITDB_ROOT_PASSWORD=123@test
+    networks:
+      - spring_net
+    deploy:
+      placement:
+        constraints:
+          - node.labels.db==mongodb1
+    volumes:
+      - mongodbvol:/data/db
+volumes:
+  mongodbvol:
+networks:
+  spring_net:
+
+
